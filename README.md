@@ -37,7 +37,6 @@ Contém um caminho por linha, apontando para cada projeto Git no OneDrive.
 **Formato do arquivo:**
 
 ```text
-D:\OneDrive\PROJETOS-WEB\confortMoveis
 D:\OneDrive\PROJETOS-WEB\outroProjeto
 D:\OneDrive\PROJETOS-PYTHON\meuApp
 ```
@@ -53,7 +52,7 @@ D:\OneDrive\PROJETOS-PYTHON\meuApp
 **Como verificar se um repositório é válido:**
 
 ```powershell
-cd "D:\OneDrive\PROJETOS-WEB\confortMoveis"
+cd "D:\OneDrive\PROJETOS-WEB\mauPrjeto"
 git status  # Deve mostrar o status sem erros
 git remote -v  # Deve mostrar a URL do repositório remoto
 ```
@@ -191,7 +190,7 @@ O tempo de execução não fica no script, e sim no **Agendador de Tarefas**.
   - ✅ Marque: **Oculto** (opcional, para não mostrar janela)
 - **Configurar para:** `Windows 10` ou `Windows 11`
 
-#### **4️⃣ Aba GATILHOS**
+#### **4️⃣ Aba GATILHOS/DISPARADOR**
 
 - Clique em **Novo...**
 - Configure:
