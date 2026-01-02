@@ -1,5 +1,5 @@
 # Caminhos principais
-$listaProjetos = "D:\OneDrive\scripts\projetos.txt" # Caminho da lista de projetos
+$listaProjetos = "D:\OneDrive\git_auto_sync\projetos.txt" # Caminho da lista de projetos
 $logDir = "D:\DEV\LOGS_PRJ_ONEDRIVE\logs"           # Caminho onde ficam os logs
 $diasParaManter = 30                                # Quantidade de dias de logs a manter
 
@@ -15,8 +15,8 @@ function Write-Log {
         [string]$mensagem
     )
     
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $logFile = Join-Path $logDir "$projeto. log"
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH: mm:ss"
+    $logFile = Join-Path $logDir "$projeto.log"
     $logLine = "[$timestamp] $mensagem"
     
     Add-Content -Path $logFile -Value $logLine
@@ -32,10 +32,10 @@ function Show-ErrorNotification {
     Add-Type -AssemblyName System.Windows.Forms
     $notification = New-Object System.Windows.Forms.NotifyIcon
     $notification.Icon = [System.Drawing.SystemIcons]::Error
-    $notification.BalloonTipIcon = [System.Windows.Forms. ToolTipIcon]::Error
+    $notification.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::Error
     $notification.BalloonTipTitle = "Git Pull - Erro"
-    $notification.BalloonTipText = "Erro no projeto:  $projeto`n$erro"
-    $notification. Visible = $true
+    $notification.BalloonTipText = "Erro no projeto: $projeto`n$erro"
+    $notification.Visible = $true
     $notification.ShowBalloonTip(10000)
     
     Start-Sleep -Seconds 2
@@ -56,12 +56,12 @@ function Clear-OldLogs {
 
 # Verificar se arquivo de projetos existe
 if (-not (Test-Path $listaProjetos)) {
-    Write-Host "ERRO: Arquivo $listaProjetos não encontrado!" -ForegroundColor Red
+    Write-Host "ERRO:  Arquivo $listaProjetos não encontrado!" -ForegroundColor Red
     exit 1
 }
 
 # Ler lista de projetos
-$projetos = Get-Content $listaProjetos | Where-Object { $_. Trim() -ne "" -and -not $_.StartsWith("#") }
+$projetos = Get-Content $listaProjetos | Where-Object { $_.Trim() -ne "" -and -not $_.StartsWith("#") }
 
 if ($projetos.Count -eq 0) {
     Write-Host "AVISO: Nenhum projeto configurado em $listaProjetos" -ForegroundColor Yellow
@@ -92,7 +92,7 @@ foreach ($projetoPath in $projetos) {
     Write-Host "Caminho: $projetoPath" -ForegroundColor Gray
     
     # Verificar se é repositório Git
-    $gitPath = Join-Path $projetoPath ". git"
+    $gitPath = Join-Path $projetoPath ".git"
     if (-not (Test-Path $gitPath)) {
         Write-Host "[AVISO] Não é um repositório Git válido" -ForegroundColor Yellow
         Write-Log -projeto $projetoNome -mensagem "AVISO: Não é um repositório Git válido"
@@ -112,16 +112,28 @@ foreach ($projetoPath in $projetos) {
             throw "Sem remote configurado"
         }
         
-        # Executar pull
-        $output = git pull 2>&1 | Out-String
+        # Executar pull e capturar saída
+        $ErrorActionPreference = 'Continue'
+        $output = & git pull 2>&1
+        $gitExitCode = $LASTEXITCODE
+        $outputString = $output | Out-String
         
-        # Verificar resultado
-        if ($output -match "error|fatal") {
-            throw $output
+        # Verificar se houve erro REAL (não apenas mensagens no stderr)
+        $temErroReal = $gitExitCode -ne 0 -and ($outputString -match "fatal:|error:|Authentication failed|Permission denied")
+        
+        if ($temErroReal) {
+            throw $outputString
         }
         
-        Write-Host "[OK] $output" -ForegroundColor Green
-        Write-Log -projeto $projetoNome -mensagem $output
+        # Sucesso
+        Write-Host "[OK] Pull executado com sucesso" -ForegroundColor Green
+        if ($outputString -match "Already up to date") {
+            Write-Host "     Já está atualizado" -ForegroundColor Gray
+        } elseif ($outputString -match "Fast-forward|Updating") {
+            Write-Host "     Arquivos atualizados!" -ForegroundColor Cyan
+        }
+        
+        Write-Log -projeto $projetoNome -mensagem $outputString.Trim()
         Write-Log -projeto $projetoNome -mensagem "Pull finalizado com sucesso"
         
     } catch {
@@ -132,6 +144,7 @@ foreach ($projetoPath in $projetos) {
         
     } finally {
         Pop-Location
+        $ErrorActionPreference = 'Stop'
     }
 }
 
