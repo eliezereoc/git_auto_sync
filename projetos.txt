@@ -15,7 +15,6 @@
 # ==========================================
 
 # Projetos Ativos
-
 D:\OneDrive\PROJETOS-WEB\api-integracao
 D:\OneDrive\PROJETOS-WEB\api-serve-node
 D:\OneDrive\PROJETOS-WEB\BIBLIOTECAS-PCB

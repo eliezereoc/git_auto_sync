@@ -81,3 +81,6 @@ ConsoleHost_history.txt
 test/
 tests/
 *.test. ps1
+
+# ignorar meu arquivo de projetos pessoais
+projetos.txt
